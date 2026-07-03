@@ -1,12 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#ifdef LOCAL
-#include "debug.h"
-#else
-#define debug(...) 42
-#endif
-
 // Goal: teach a very simple neural network to double a floating point value in the range [0, 0.5]
 
 // This neural network consists of one input, two hidden layers with one and two neurons, respectively, and one output. 
