@@ -1,0 +1,147 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[margin=0.6in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\begin{document}
+
+\begin{gather*}
+\text{Goal: Derive backpropagation} \\[0.5em]
+\text{First step: Define and analyze functions}
+\end{gather*}
+
+\begin{gather*}
+\text{Definitions:} \\[0.3em]
+\text{L is the number of layers} \\[0.3em]
+\text{l is the index of a layer in the network and is written in a superscript} \\[0.3em]
+n^{l} \text{ is the number of neurons in layer } l \\[0.3em]
+i \text{ refers to the ith neuron in a layer and is written in a subscript} \\[0.3em]
+w_{j,i}^{l} \text{ is the numerical weight of the connection between neuron j in layer l-1 and neuron i in layer l} \\[0.3em]
+a_{i}^{l} \text{ is the numerical value, called the activation, of neuron i in layer l} \\[0.3em]
+z_{i}^{l} \text{ is the weighted input of neuron i in layer l before applying the sigmoid activation function} \\[0.3em]
+b_{i}^{l} \text{ is the bias (shift) used when calculating the weighted input (z) for neuron i in layer l} \\[0.3em]
+\text{The sigmoid function is continuous and differentiable and maps weighted inputs to an activation in the range (0, 1)} \\[0.3em]
+\text{The cost function (C) uses half SSE (quadratic cost) to generally represent how the neural network is performing} \\[0.3em]
+\text{SSE means sum of squared errors, multiplied by a factor of 1/2 to simplify the derivative} \\[0.3em]
+\text{T is the dataset size, t is the index of a piece of data in the dataset} \\[0.3em]
+y_{i}^{t} \text{ is the desired activation of neuron i in the output layer for training example t}
+\end{gather*}
+
+\[
+z_{i}^{l} = \sum_{j=1}^{n^{l-1}}(w_{j,i}^{l} \cdot a_{j}^{l-1})+b_{i}^{l}
+\]
+
+\[
+a_{i}^{l}=\sigma(z_{i}^{l}), \quad \frac{\partial a_{i}^{l}}{\partial z_{i}^{l}}=\sigma'(z_{i}^{l})
+\]
+
+\[
+\sigma(x)=\frac{1}{1+e^{-x}}= (1+e^{-x})^{-1}
+\]
+
+\[
+\sigma'(x) = -1(1+e^{-x})^{-2} \cdot (-e^{-x})=\frac{e^{-x}}{(1+e^{-x})^{2}}=\sigma(x)^{2} \cdot (\sigma(x)^{-1}-1)=\sigma(x) \cdot \left( 1-\sigma(x) \right)
+\]
+
+\[
+\frac{\partial a_{i}^{l}}{\partial z_{i}^{l}}=\sigma'(z_{i}^{l})=a_{i}^{l} \cdot (1-a_{i}^{l})
+\]
+
+\[
+C_{t}=\frac{1}{2}\sum_{i=1}^{n^{L}}(a_{i}^{L}-y_{i}^{t})^{2}
+\]
+
+\[
+C=\frac{\sum_{t=1}^{T}C_{t}}{T}, \quad \frac{\partial C}{\partial w_{j,i}^{l}}=\frac{\sum_{t=1}^{T}\frac{\partial C_{t}}{\partial w_{j,i}^{l}}}{T}
+\]
+
+\begin{gather*}
+\text{Backpropagation: efficiently compute partial derivatives of cost function with respect to each parameter} \\[0.3em]
+\text{Dynamic Programming } \to \text{ Reuse already computed subproblems} \\[0.3em]
+\text{The partial derivatives of the cost function can be computed by averaging the partial derivatives of each training example} \\[0.3em]
+\text{A weight may affect } C_{t} \text{ through every computational path from that weight to each reachable neuron in the output layer} \\[0.3em]
+\text{To find the cumulative effect on } C_{t}\text{, we must add up the effects of each path}
+\end{gather*}
+
+\[
+\frac{\partial C_{t}}{\partial a_{i}^{L}}=a_{i}^{L}-y_{i}^{t}
+\]
+
+\[
+\frac{\partial C_{t}}{\partial z_{i}^{L}}=(a_{i}^{L}-y_{i}^{t}) \cdot \frac{\partial a_{i}^{L}}{\partial z_{i}^{L}}=(a_{i}^{L}-y_{i}^{t}) \cdot (a_{i}^{L}) \cdot (1 - a_{i}^{L})
+\]
+
+\begin{gather*}
+\text{The partial derivative of the cost function with respect to z has a common structure} \\[0.3em]
+\text{Each time the chain rule passes through a sigmoid function it contributes the factor } \frac{\partial a_{i}^{l}}{\partial z_{i}^{l}}=(a_{i}^{l}) \cdot (1 - a_{i}^{l}) \\[0.3em]
+\text{We can define and store this output layer partial derivative as the output layer "error"} \\[0.3em]
+\text{This is the base case in our dynamic programming problem}
+\end{gather*}
+
+\[
+\delta_{i}^{l}:=\frac{\partial C_{t}}{\partial z_{i}^{l}}
+\]
+
+\[
+\frac{\partial C_{t}}{\partial z_{i}^{L}}=\delta_{i}^{L}=(a_{i}^{L}-y_{i}^{t}) \cdot (a_{i}^{L}) \cdot (1 - a_{i}^{L})
+\]
+
+\[
+\frac{\partial C_{t}}{\partial w_{j,i}^{L}}=\frac{\partial C_{t}}{\partial z_{i}^{L}} \cdot \frac{\partial z_{i}^{L}}{\partial w_{j,i}^{L}}=\delta_{i}^{L} \cdot a_{j}^{L-1}
+\]
+
+\[
+\frac{\partial C_{t}}{\partial b_{i}^{L}}=\frac{\partial C_{t}}{\partial z_{i}^{L}} \cdot \frac{\partial z_{i}^{L}}{\partial b_{i}^{L}}=\delta_{i}^{L} \cdot 1=\delta_{i}^{L}
+\]
+
+\begin{gather*}
+\text{Now we can move back one layer and attempt to use the already calculated values}
+\end{gather*}
+
+\[
+\frac{\partial C_{t}}{\partial w_{j,i}^{L-1}}=\sum_{k=1}^{n^{L}}\frac{\partial C_{t}}{\partial z_{k}^{L}} \cdot \frac{\partial z_{k}^{L}}{\partial a_{i}^{L-1}} \cdot \frac{\partial a_{i}^{L-1}}{\partial z_{i}^{L-1}} \cdot \frac{\partial z_{i}^{L-1}}{\partial w_{j,i}^{L-1}}=\sum_{k=1}^{n^{L}}\delta_{k}^{L} \cdot w_{i,k}^{L} \cdot (a_{i}^{L-1}) \cdot (1 - a_{i}^{L-1}) \cdot a_{j}^{L-2}
+\]
+
+\begin{gather*}
+\text{A pattern seems to be emerging, and we may be able to find a general rule for any layer}
+\end{gather*}
+
+\[
+\frac{\partial C_{t}}{\partial w_{j,i}^{L-1}}=(a_{i}^{L-1}) \cdot (1 - a_{i}^{L-1}) \cdot (\sum_{k=1}^{n^{L}}\delta_{k}^{L} \cdot w_{i,k}^{L}) \cdot a_{j}^{L-2}
+\]
+
+\[
+\delta_{i}^{L-1}=(a_{i}^{L-1}) \cdot (1 - a_{i}^{L-1}) \cdot (\sum_{k=1}^{n^{L}}\delta_{k}^{L} \cdot w_{i,k}^{L})
+\]
+
+\[
+\frac{\partial C_{t}}{\partial w_{j,i}^{L-1}}=\delta_{i}^{L-1} \cdot a_{j}^{L-2}
+\]
+
+\begin{gather*}
+\text{All the terms that involve k now exist because neuron i in layer l can affect the cost through all k nodes in layer l+1} \\[0.3em]
+\text{Now we can iteratively step back and use the information from previous layers to efficiently calculate the next} \\[0.3em]
+\text{This is similar to tabulation dynamic programming in which you fill a table iteratively} \\[0.3em]
+\text{We already have the base case for the output layer (l=L), so we just need to derive a new formula for all hidden layers} \\[0.3em]
+\text{Now for arbitrary l} (1 \leq l < L):
+\end{gather*}
+
+\[
+\frac{\partial C_{t}}{\partial w_{j,i}^{l}}=\frac{\partial C_{t}}{\partial z_{i}^{l}} \cdot \frac{\partial z_{i}^{l}}{\partial w_{j,i}^{l}}=\delta_{i}^{l} \cdot a_{j}^{l-1}=(a_{i}^{l}) \cdot (1 - a_{i}^{l}) \cdot (\sum_{k=1}^{n^{l+1}}\delta_{k}^{l+1} \cdot w_{i,k}^{l+1}) \cdot a_{j}^{l-1}
+\]
+
+\[
+\frac{\partial C_{t}}{\partial b_{i}^{l}}=\frac{\partial C_{t}}{\partial z_{i}^{l}} \cdot \frac{\partial z_{i}^{l}}{\partial b_{i}^{l}}=\delta_{i}^{l} \cdot 1=\delta_{i}^{l}
+\]
+
+\begin{gather*}
+\text{Backpropagation has a time complexity for one training example of O(P) where P is the number of weights and biases} \\[0.3em]
+\text{It is only necessary to visit each parameter a constant number of times for each training example} \\[0.3em]
+\text{By storing and reusing the similar subproblems represented by } \delta_{i}^{l}\text{, we avoid an exponential time complexity} \\[0.3em]
+\text{Without this algorithm larger scale machine learning would likely take too long}
+\end{gather*}
+
+\end{document}

@@ -31,7 +31,7 @@ signed main() {
     double w1 = 0.5, w2 = -0.3, w3 = 0.7, w4 = 0.3, w5 = -0.2; // weights
     double b1 = 0.0, b2 = 0.0, b3 = 0.0, c = 0.0; // biases
     double firstCost, lastCost;
-    int n = 1000000;
+    int n = 1500;
     for(int i = 0; i < n; i++){
         double totalCost = 0.0;
         for(auto [x, y] : trials){
